@@ -335,22 +335,51 @@ let currentView = 'grid';
 let isSaving = false;
 
 // ─── API ──────────────────────────────────────
+// Apps Script CORS fix: use no-cors + follow redirects via iframe trick for GET,
+// and form-urlencoded POST which Apps Script handles without preflight
 async function apiFetch(params) {
   const url = getScriptUrl();
   if (!url) return null;
   const qs = new URLSearchParams(params).toString();
-  const res = await fetch(`${url}?${qs}`);
-  return res.json();
+  // Use no-cors mode won't give us the body, so we use a JSONP-style approach:
+  // Apps Script supports ?callback= for JSONP
+  return new Promise((resolve, reject) => {
+    const cbName = 'cb_' + Date.now();
+    const script = document.createElement('script');
+    window[cbName] = (data) => {
+      delete window[cbName];
+      document.body.removeChild(script);
+      resolve(data);
+    };
+    script.onerror = () => {
+      delete window[cbName];
+      document.body.removeChild(script);
+      reject(new Error('JSONP error'));
+    };
+    script.src = `${url}?${qs}&callback=${cbName}`;
+    document.body.appendChild(script);
+    setTimeout(() => {
+      if (window[cbName]) {
+        delete window[cbName];
+        try { document.body.removeChild(script); } catch(e){}
+        reject(new Error('Timeout'));
+      }
+    }, 10000);
+  });
 }
 
 async function apiPost(body) {
   const url = getScriptUrl();
   if (!url) return null;
+  // Use application/x-www-form-urlencoded — no CORS preflight triggered
   const res = await fetch(url, {
     method: 'POST',
-    body: JSON.stringify(body)
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'data=' + encodeURIComponent(JSON.stringify(body)),
+    redirect: 'follow'
   });
-  return res.json();
+  const text = await res.text();
+  try { return JSON.parse(text); } catch(e) { return { ok: false }; }
 }
 
 // ─── LOAD ─────────────────────────────────────
