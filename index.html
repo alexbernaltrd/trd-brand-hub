@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRD Agency — Brand Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0c10; --surface: #14141a; --surface2: #1c1c26;
+    --border: #2a2a38; --accent: #6A2773; --accent2: #9b3fa8;
+    --gold: #F2D335; --text: #e8e8f0; --muted: #7a7a98; --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; }
+  .logo span { color: var(--gold); }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; display: inline-block; margin-right: 6px; box-shadow: 0 0 8px #4ade80; }
+  .status-dot.offline { background: #f87171; box-shadow: 0 0 8px #f87171; }
+  .status-dot.loading { background: var(--gold); box-shadow: 0 0 8px var(--gold); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .status-text { font-size: 12px; color: var(--muted); }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 28px 24px; }
+
+  .toolbar { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; align-items: center; }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 340px; }
+  .search-wrap svg { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+  input[type="text"] { width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 10px 14px 10px 38px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color .2s; }
+  input[type="text"]:focus { border-color: var(--accent2); }
+  .view-toggle { display: flex; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .view-btn { background: none; border: none; color: var(--muted); padding: 9px 13px; cursor: pointer; transition: all .2s; font-size: 15px; }
+  .view-btn.active { background: var(--accent); color: white; }
+  .btn-add { background: var(--accent); color: white; border: none; padding: 10px 18px; border-radius: var(--radius); font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background .2s; }
+  .btn-add:hover { background: var(--accent2); }
+  .count-label { font-size: 12px; color: var(--muted); margin-left: auto; white-space: nowrap; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: transform .2s, border-color .2s, box-shadow .2s; }
+  .card:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 8px 32px rgba(106,39,115,.25); }
+  .card-palette { height: 7px; display: flex; }
+  .card-palette-swatch { flex: 1; }
+  .card-body { padding: 16px 18px; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .card-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; }
+  .initials { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; }
+  .section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin: 10px 0 6px; }
+
+  /* COLORS */
+  .colors-row { display: flex; gap: 5px; flex-wrap: wrap; }
+  .color-chip { display: flex; align-items: center; gap: 5px; background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; padding: 3px 7px; font-size: 11px; cursor: pointer; transition: border-color .15s; font-family: monospace; }
+  .color-chip:hover { border-color: var(--accent2); }
+  .color-dot { width: 12px; height: 12px; border-radius: 2px; border: 1px solid rgba(255,255,255,.1); flex-shrink: 0; }
+
+  /* FONTS — nueva estructura */
+  .fonts-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .font-chip { display: inline-flex; align-items: center; gap: 5px; background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; padding: 4px 9px; font-size: 12px; color: var(--text); }
+  .font-chip a { color: var(--gold); text-decoration: none; font-size: 11px; }
+  .font-chip a:hover { text-decoration: underline; }
+
+  .size-badge { background: rgba(242,211,53,.1); color: var(--gold); border: 1px solid rgba(242,211,53,.25); border-radius: 4px; padding: 2px 7px; font-size: 11px; font-weight: 600; }
+  .card-links { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .link-btn { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--gold); text-decoration: none; background: rgba(242,211,53,.07); border: 1px solid rgba(242,211,53,.2); border-radius: 5px; padding: 3px 8px; transition: background .15s; }
+  .link-btn:hover { background: rgba(242,211,53,.18); }
+  .notes-box { background: rgba(106,39,115,.12); border-left: 3px solid var(--accent); border-radius: 0 5px 5px 0; padding: 7px 9px; font-size: 11px; color: #c9a8d4; margin-top: 8px; }
+  .card-actions { display: flex; gap: 6px; margin-top: 10px; }
+  .btn-edit, .btn-del { background: none; border: 1px solid var(--border); color: var(--muted); cursor: pointer; font-size: 11px; padding: 4px 10px; border-radius: 6px; transition: all .2s; }
+  .btn-edit:hover { color: var(--text); border-color: var(--accent2); }
+  .btn-del:hover { color: #ff6b6b; border-color: #ff6b6b; background: rgba(255,107,107,.08); }
+
+  .list-view .grid { grid-template-columns: 1fr; gap: 8px; }
+  .list-view .card { display: flex; flex-direction: row; }
+  .list-view .card-palette { width: 5px; height: auto; flex-direction: column; flex-shrink: 0; }
+  .list-view .card-body { display: flex; align-items: center; gap: 16px; padding: 12px 18px; flex: 1; flex-wrap: wrap; }
+  .list-view .card-header { margin-bottom: 0; flex-shrink: 0; min-width: 160px; }
+  .list-view .section-label { display: none; }
+  .list-view .notes-box { display: none; }
+  .list-view .card-links { border-top: none; margin-top: 0; padding-top: 0; }
+
+  .loading-state { text-align: center; padding: 80px 20px; color: var(--muted); grid-column: 1/-1; }
+  .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 14px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .no-results { text-align: center; padding: 80px 20px; color: var(--muted); grid-column: 1/-1; font-size: 15px; }
+
+  #setupBanner { background: rgba(242,211,53,.08); border: 1px solid rgba(242,211,53,.25); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 24px; font-size: 13px; color: #e8d86a; display: none; }
+  #setupBanner strong { display: block; font-family: 'Syne',sans-serif; font-size: 15px; margin-bottom: 6px; }
+  #urlInput { width: 100%; margin-top: 10px; padding-left: 14px; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity .25s; }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; max-width: 640px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 28px; position: relative; transform: translateY(20px); transition: transform .25s; }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-close { position: absolute; top: 14px; right: 14px; background: var(--surface2); border: none; color: var(--muted); width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+  .modal-close:hover { color: var(--text); }
+  .modal-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; margin-bottom: 20px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.full { grid-column: 1/-1; }
+  label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); }
+  input[type="text"].fi, textarea.fi { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 9px 12px; border-radius: 9px; font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; width: 100%; transition: border-color .2s; }
+  input[type="text"].fi:focus, textarea.fi:focus { border-color: var(--accent2); }
+  textarea.fi { resize: vertical; min-height: 70px; }
+
+  /* COLOR inputs */
+  .chip-input-row { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+  .color-input-wrap { display: flex; align-items: center; gap: 5px; background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; padding: 4px 8px; }
+  input[type="color"] { width: 22px; height: 22px; border: none; background: none; cursor: pointer; padding: 0; border-radius: 3px; }
+  .chex { width: 76px; background: none; border: none; color: var(--text); font-size: 12px; outline: none; font-family: monospace; }
+
+  /* FONT inputs */
+  .font-input-wrap { display: flex; align-items: center; gap: 5px; background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; padding: 5px 8px; flex-wrap: wrap; }
+  .font-name-input { background: none; border: none; color: var(--text); font-size: 13px; outline: none; min-width: 120px; font-family: 'DM Sans', sans-serif; }
+  .font-url-input { background: none; border: none; border-left: 1px solid var(--border); color: var(--gold); font-size: 11px; outline: none; min-width: 140px; padding-left: 8px; font-family: 'DM Sans', sans-serif; }
+  .font-url-input::placeholder { color: var(--muted); }
+
+  .btn-rm { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 15px; line-height: 1; flex-shrink: 0; }
+  .btn-add-chip { background: var(--surface2); border: 1px dashed var(--border); color: var(--muted); padding: 5px 11px; border-radius: 7px; cursor: pointer; font-size: 12px; margin-top: 5px; width: fit-content; }
+  .btn-add-chip:hover { color: var(--text); }
+
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .btn-cancel { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 9px 18px; border-radius: var(--radius); font-family: 'Syne',sans-serif; font-size: 13px; cursor: pointer; }
+  .btn-save { background: var(--accent); border: none; color: white; padding: 9px 22px; border-radius: var(--radius); font-family: 'Syne',sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; transition: background .2s; }
+  .btn-save:hover { background: var(--accent2); }
+  .btn-save:disabled { opacity: .5; cursor: not-allowed; }
+
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--accent); color: white; padding: 8px 18px; border-radius: 40px; font-size: 13px; opacity: 0; pointer-events: none; transition: all .3s; z-index: 9999; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } header { padding: 12px 16px; } .container { padding: 16px 12px; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">TRD <span>Brand</span> Hub</div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span class="status-dot loading" id="statusDot"></span>
+    <span class="status-text" id="statusText">Conectando…</span>
+  </div>
+</header>
+
+<div class="container">
+  <div id="setupBanner">
+    <strong>⚙ Primer paso: conecta tu Google Sheet</strong>
+    Pega la URL del Web App de Apps Script:
+    <input type="text" id="urlInput" class="fi" placeholder="https://script.google.com/macros/s/XXXX/exec">
+    <div style="margin-top:8px">
+      <button class="btn-save" onclick="saveScriptUrl()" style="font-size:12px;padding:7px 14px">Guardar y conectar</button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="searchInput" placeholder="Buscar cliente o tipografía…">
+    </div>
+    <div class="view-toggle">
+      <button class="view-btn active" id="btnGrid" onclick="setView('grid')">⊞</button>
+      <button class="view-btn" id="btnList" onclick="setView('list')">☰</button>
+    </div>
+    <button class="btn-add" onclick="openModal()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+      Nuevo cliente
+    </button>
+    <span class="count-label" id="countLabel"></span>
+  </div>
+
+  <div id="cardsContainer" class="grid">
+    <div class="loading-state"><div class="spinner"></div>Cargando clientes…</div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-title" id="modalTitle">Nuevo cliente</div>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Nombre del cliente *</label>
+        <input type="text" class="fi" id="fName" placeholder="Ej: Martha Chirinos">
+      </div>
+      <div class="form-group full">
+        <label>Colores de marca</label>
+        <div class="chip-input-row" id="colorsInputRow"></div>
+        <button class="btn-add-chip" onclick="addColorInput()">+ Color</button>
+      </div>
+      <div class="form-group full">
+        <label>Tipografías <span style="font-size:10px;color:var(--muted);text-transform:none;letter-spacing:0">(nombre + link de descarga opcional)</span></label>
+        <div id="fontsInputRow" style="display:flex;flex-direction:column;gap:6px"></div>
+        <button class="btn-add-chip" onclick="addFontInput()">+ Tipografía</button>
+      </div>
+      <div class="form-group">
+        <label>Tamaño subtítulos (pt)</label>
+        <input type="text" class="fi" id="fSubSize" placeholder="Ej: 9">
+      </div>
+      <div class="form-group">
+        <label>Logos</label>
+        <input type="text" class="fi" id="fLogos" placeholder="Link o nombre de archivo">
+      </div>
+      <div class="form-group full">
+        <label>Link Plantilla Portadas Video (Canva)</label>
+        <input type="text" class="fi" id="fTemplate" placeholder="https://canva.com/…">
+      </div>
+      <div class="form-group full">
+        <label>Link Manual de Marca</label>
+        <input type="text" class="fi" id="fManual" placeholder="https://…">
+      </div>
+      <div class="form-group full">
+        <label>Moodboard / Referencias</label>
+        <input type="text" class="fi" id="fMoodboard" placeholder="https://…">
+      </div>
+      <div class="form-group full">
+        <label>Redes Sociales</label>
+        <input type="text" class="fi" id="fSocial" placeholder="https://instagram.com/…">
+      </div>
+      <div class="form-group full">
+        <label>Notas clave para el equipo</label>
+        <textarea class="fi" id="fNotes" placeholder="Indicaciones especiales…"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save" id="btnSave" onclick="saveClient()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'trd_script_url';
+function getScriptUrl() { return localStorage.getItem(STORAGE_KEY) || ''; }
+function saveScriptUrl() {
+  const url = document.getElementById('urlInput').value.trim();
+  if (!url.startsWith('https://script.google.com')) { showToast('URL inválida', true); return; }
+  localStorage.setItem(STORAGE_KEY, url);
+  document.getElementById('setupBanner').style.display = 'none';
+  loadClients();
+}
+
+let clients = [], editingId = null, tempColors = [], tempFonts = [], isSaving = false;
+
+// ── JSONP API (evita CORS) ──────────────────────────────────
+function jsonpCall(params) {
+  return new Promise((resolve, reject) => {
+    const cb = 'cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const script = document.createElement('script');
+    window[cb] = (data) => { delete window[cb]; document.body.removeChild(script); resolve(data); };
+    script.onerror = () => { delete window[cb]; try{document.body.removeChild(script);}catch(e){} reject(new Error('Error')); };
+    const qs = Object.entries({...params, callback: cb}).map(([k,v]) => k+'='+encodeURIComponent(v)).join('&');
+    script.src = getScriptUrl() + '?' + qs;
+    document.body.appendChild(script);
+    setTimeout(() => { if(window[cb]){ delete window[cb]; try{document.body.removeChild(script);}catch(e){} reject(new Error('Timeout')); }}, 12000);
+  });
+}
+
+async function loadClients() {
+  setStatus('loading','Conectando…');
+  try {
+    const data = await jsonpCall({ action: 'getAll' });
+    if (!data?.ok) throw new Error();
+    clients = data.clients;
+    setStatus('online', `Conectado · ${clients.length} clientes`);
+    filterAndRender();
+  } catch(e) { setStatus('offline','Sin conexión'); renderCards([]); showToast('No se pudo conectar',true); }
+}
+
+function setStatus(s,t) {
+  document.getElementById('statusDot').className = 'status-dot'+(s==='loading'?' loading':s==='offline'?' offline':'');
+  document.getElementById('statusText').textContent = t;
+}
+
+// ── HELPERS ────────────────────────────────────────────────
+function normalizeHex(hex) {
+  if (!hex) return null;
+  hex = hex.replace('#','').trim();
+  if (hex.length===3) hex = hex.split('').map(c=>c+c).join('');
+  return hex.length===6 ? '#'+hex.toUpperCase() : null;
+}
+function getInitials(n) { return n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+function colorFromName(n) { let h=0; for(let c of n) h=(h*31+c.charCodeAt(0))&0xffffffff; return `hsl(${Math.abs(h)%360},45%,33%)`; }
+function isURL(s) { return s && s.startsWith('http'); }
+
+// Fonts stored as JSON string: [{"name":"Poppins","url":""},...]
+function parseFonts(raw) {
+  if (!raw) return [];
+  try { const p = JSON.parse(raw); if (Array.isArray(p)) return p; } catch(e) {}
+  // Legacy: plain text separated by / or ,
+  return raw.split(/[\/,]+/).map(f=>f.trim()).filter(Boolean).map(f=>({name:f,url:''}));
+}
+function serializeFonts(arr) { return JSON.stringify(arr); }
+
+// ── RENDER ─────────────────────────────────────────────────
+function renderCards(list) {
+  const container = document.getElementById('cardsContainer');
+  document.getElementById('countLabel').textContent = `${list.length} cliente${list.length!==1?'s':''}`;
+  if (!list.length) { container.innerHTML = `<div class="no-results">Sin resultados</div>`; return; }
+
+  container.innerHTML = list.map(c => {
+    const colors = Array.isArray(c.colors) ? c.colors : (c.colors||'').split(',').map(x=>x.trim()).filter(Boolean);
+    const initBg = colors[0] ? (normalizeHex(colors[0])||colorFromName(c.name)) : colorFromName(c.name);
+
+    const palette = colors.length
+      ? colors.map(col=>`<div class="card-palette-swatch" style="background:${normalizeHex(col)||'#'+col}"></div>`).join('')
+      : `<div class="card-palette-swatch" style="background:${colorFromName(c.name)}"></div>`;
+
+    const chips = colors.map(col => {
+      const h = normalizeHex(col)||('#'+col);
+      return `<div class="color-chip" onclick="copyText('${h}',event)"><div class="color-dot" style="background:${h}"></div>${h}</div>`;
+    }).join('');
+
+    // Fonts — unified list
+    const fonts = parseFonts(c.fonts || c.fontsDesign || '');
+    const fontChips = fonts.map(f =>
+      `<span class="font-chip">${f.name}${f.url ? ` <a href="${f.url}" target="_blank">↓ descargar</a>` : ''}</span>`
+    ).join('');
+
+    let links = '';
+    if (isURL(c.template)) links += `<a class="link-btn" href="${c.template}" target="_blank">🎬 Plantilla</a>`;
+    if (isURL(c.manual)) links += `<a class="link-btn" href="${c.manual}" target="_blank">📘 Manual</a>`;
+    if (isURL(c.moodboard)) links += `<a class="link-btn" href="${c.moodboard}" target="_blank">🎨 Moodboard</a>`;
+    if (isURL(c.social)) links += `<a class="link-btn" href="${c.social}" target="_blank">📱 Redes</a>`;
+    if (c.logos && !isURL(c.logos)) links += `<span class="link-btn">🖼 ${c.logos}</span>`;
+
+    return `<div class="card">
+      <div class="card-palette">${palette}</div>
+      <div class="card-body">
+        <div class="card-header">
+          <div class="card-name">${c.name}</div>
+          <div style="display:flex;gap:5px;align-items:center">
+            ${c.subSize ? `<span class="size-badge">${c.subSize}pt</span>` : ''}
+            <div class="initials" style="background:${initBg}">${getInitials(c.name)}</div>
+          </div>
+        </div>
+        ${chips ? `<div class="section-label">Colores</div><div class="colors-row">${chips}</div>` : ''}
+        ${fontChips ? `<div class="section-label">Tipografías</div><div class="fonts-row">${fontChips}</div>` : ''}
+        ${c.notes ? `<div class="notes-box">⚠ ${c.notes}</div>` : ''}
+        ${links ? `<div class="card-links">${links}</div>` : ''}
+        <div class="card-actions">
+          <button class="btn-edit" onclick="editClient('${c.id}')">✏ Editar</button>
+          <button class="btn-del" onclick="deleteClient('${c.id}')">✕ Eliminar</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterAndRender() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  const list = q ? clients.filter(c =>
+    c.name.toLowerCase().includes(q) ||
+    (c.fonts||c.fontsDesign||'').toLowerCase().includes(q)
+  ) : clients;
+  renderCards(list);
+}
+
+function setView(v) {
+  document.getElementById('btnGrid').classList.toggle('active', v==='grid');
+  document.getElementById('btnList').classList.toggle('active', v==='list');
+  document.getElementById('cardsContainer').classList.toggle('list-view', v==='list');
+}
+
+function copyText(text, e) {
+  if (e) e.stopPropagation();
+  navigator.clipboard.writeText(text).then(() => showToast(`Copiado: ${text} ✓`));
+}
+
+// ── MODAL ──────────────────────────────────────────────────
+function openModal(client) {
+  editingId = null;
+  document.getElementById('modalTitle').textContent = 'Nuevo cliente';
+  ['fName','fSubSize','fManual','fTemplate','fMoodboard','fSocial','fLogos','fNotes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  tempColors = ['#000000','#FFFFFF'];
+  tempFonts = [{name:'',url:''}];
+  renderColorInputs(); renderFontInputs();
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function editClient(id) {
+  const c = clients.find(x => String(x.id)===String(id));
+  if (!c) return;
+  editingId = id;
+  document.getElementById('modalTitle').textContent = `Editar: ${c.name}`;
+  document.getElementById('fName').value = c.name||'';
+  document.getElementById('fSubSize').value = c.subSize||'';
+  document.getElementById('fManual').value = c.manual||'';
+  document.getElementById('fTemplate').value = c.template||'';
+  document.getElementById('fMoodboard').value = c.moodboard||'';
+  document.getElementById('fSocial').value = c.social||'';
+  document.getElementById('fLogos').value = c.logos||'';
+  document.getElementById('fNotes').value = c.notes||'';
+  tempColors = Array.isArray(c.colors) ? [...c.colors] : (c.colors||'').split(',').map(x=>x.trim()).filter(Boolean);
+  if (!tempColors.length) tempColors = ['#000000'];
+  tempFonts = parseFonts(c.fonts || c.fontsDesign || '');
+  if (!tempFonts.length) tempFonts = [{name:'',url:''}];
+  renderColorInputs(); renderFontInputs();
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+// Color inputs
+function addColorInput() { tempColors.push('#888888'); renderColorInputs(); }
+function renderColorInputs() {
+  document.getElementById('colorsInputRow').innerHTML = tempColors.map((col,i) => {
+    const h = normalizeHex(col)||col;
+    const safe = h.startsWith('#') ? h : '#'+h;
+    return `<div class="color-input-wrap">
+      <input type="color" value="${safe.slice(0,7)}" oninput="tempColors[${i}]=this.value;renderColorInputs()">
+      <input type="text" class="chex" value="${safe}" oninput="tempColors[${i}]=this.value" maxlength="9">
+      <button class="btn-rm" onclick="tempColors.splice(${i},1);renderColorInputs()">×</button>
+    </div>`;
+  }).join('');
+}
+
+// Font inputs
+function addFontInput() { tempFonts.push({name:'',url:''}); renderFontInputs(); }
+function renderFontInputs() {
+  document.getElementById('fontsInputRow').innerHTML = tempFonts.map((f,i) =>
+    `<div class="font-input-wrap">
+      <input type="text" class="font-name-input" value="${f.name}" placeholder="Nombre de tipografía" oninput="tempFonts[${i}].name=this.value">
+      <input type="text" class="font-url-input" value="${f.url||''}" placeholder="URL descarga (opcional)" oninput="tempFonts[${i}].url=this.value">
+      <button class="btn-rm" onclick="tempFonts.splice(${i},1);renderFontInputs()">×</button>
+    </div>`
+  ).join('');
+}
+
+async function saveClient() {
+  const name = document.getElementById('fName').value.trim();
+  if (!name) { document.getElementById('fName').focus(); showToast('El nombre es obligatorio',true); return; }
+  if (isSaving) return;
+  isSaving = true;
+  const btn = document.getElementById('btnSave');
+  btn.disabled = true; btn.textContent = 'Guardando…';
+
+  const fontsClean = tempFonts.filter(f => f.name.trim());
+  const client = {
+    id: editingId || null, name,
+    colors: tempColors.filter(Boolean),
+    fonts: serializeFonts(fontsClean),
+    fontsDesign: fontsClean.map(f=>f.name).join(' / '), // compatibilidad
+    fontsVideo: '',
+    subSize: document.getElementById('fSubSize').value.trim(),
+    manual: document.getElementById('fManual').value.trim(),
+    template: document.getElementById('fTemplate').value.trim(),
+    moodboard: document.getElementById('fMoodboard').value.trim(),
+    social: document.getElementById('fSocial').value.trim(),
+    logos: document.getElementById('fLogos').value.trim(),
+    notes: document.getElementById('fNotes').value.trim()
+  };
+
+  try {
+    const action = editingId ? 'update' : 'add';
+    const res = await jsonpCall({ action, payload: JSON.stringify({ action, client }) });
+    if (!res?.ok) throw new Error();
+    showToast(editingId ? 'Cliente actualizado ✓' : 'Cliente añadido ✓');
+    closeModal();
+    await loadClients();
+  } catch(e) { showToast('Error al guardar',true); }
+  isSaving = false; btn.disabled = false; btn.textContent = 'Guardar';
+}
+
+async function deleteClient(id) {
+  const c = clients.find(x => String(x.id)===String(id));
+  if (!confirm(`¿Eliminar "${c?.name}"?`)) return;
+  try {
+    const res = await jsonpCall({ action: 'delete', payload: JSON.stringify({ action:'delete', client:{id} }) });
+    if (!res?.ok) throw new Error();
+    showToast('Cliente eliminado');
+    await loadClients();
+  } catch(e) { showToast('Error al eliminar',true); }
+}
+
+function showToast(msg, isErr) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isErr ? '#c0392b' : 'var(--accent)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+document.getElementById('searchInput').addEventListener('input', filterAndRender);
+document.getElementById('modalOverlay').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
+
+if (!getScriptUrl()) {
+  document.getElementById('setupBanner').style.display = 'block';
+  setStatus('offline','Pendiente de configuración');
+  renderCards([]);
+} else { loadClients(); }
+</script>
+</body>
+</html>
